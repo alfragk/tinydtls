@@ -39,7 +39,8 @@
 
 /* Log configuration */
 #define LOG_MODULE "dtls"
-#define LOG_LEVEL  LOG_LEVEL_DTLS
+//#define LOG_LEVEL  LOG_LEVEL_DTLS
+#define LOG_LEVEL  LOG_LEVEL_DBG
 #include "dtls-log.h"
 
 #define dtls_set_version(H,V) dtls_int_to_uint16((H)->version, (V))
@@ -152,6 +153,7 @@ dtls_init() {
   dtls_hmac_storage_init();
   netq_init();
   dtls_peer_init();
+
 }
 
 /* Calls cb_alert() with given arguments if defined, otherwise an
@@ -1360,6 +1362,8 @@ dtls_prepare_record(dtls_peer_t *peer, dtls_security_parameters_t *security,
     memcpy(A_DATA + 8,  &DTLS_RECORD_HEADER(sendbuf)->content_type, 3); /* type and version */
     dtls_int_to_uint16(A_DATA + 11, res - 8); /* length */
     
+    dtls_debug_dump("message before encryption:", start + 8, res - 8);
+
     res = dtls_encrypt(start + 8, res - 8, start + 8, nonce,
 		       dtls_kb_local_write_key(security, peer->role),
 		       dtls_kb_key_size(security, peer->role),
@@ -1369,7 +1373,7 @@ dtls_prepare_record(dtls_peer_t *peer, dtls_security_parameters_t *security,
       return res;
 
     res += 8;			/* increment res by size of nonce_explicit */
-    dtls_debug_dump("message:", start, res);
+    dtls_debug_dump("message after encryption:", start, res);
   }
 
   /* fix length of fragment in sendbuf */
@@ -2208,7 +2212,7 @@ dtls_send_server_hello_msgs(dtls_context_t *ctx, dtls_peer_t *peer)
 
     if (len < 0) {
       dtls_debug("dtls_server_hello: cannot create ServerKeyExchange\n");
-      return len;
+	 //return len; /*alfrag*/
     }
 
     if (len > 0) {
@@ -2216,7 +2220,7 @@ dtls_send_server_hello_msgs(dtls_context_t *ctx, dtls_peer_t *peer)
 
       if (res < 0) {
 	dtls_debug("dtls_server_key_exchange_psk: cannot send server key exchange record\n");
-	return res;
+		 //return res; /*alfrag*/
       }
     }
   }
